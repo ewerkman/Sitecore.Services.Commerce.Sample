@@ -1,0 +1,152 @@
+﻿@using Sitecore.Commerce.Engine.Connect.Entities
+
+@model Sitecore.Commerce.Services.Carts.CartResult
+
+<style>
+    table {
+        border: solid 1px gray;
+    }
+
+    tr {
+        border: solid 1px gray;
+    }
+
+    td {
+        border: solid 1px gray;
+    }
+</style>
+
+@if (!Model.Success)
+{
+    <ul>
+        @foreach (var message in Model.SystemMessages)
+        {
+            <li>@message.Message</li>
+        }
+    </ul>
+}
+
+@if (Model.Cart != null)
+{
+    var cart = Model.Cart as CommerceCart;
+    var commerceTotal = cart.Total as CommerceTotal;
+
+    var lineItemDiscountAmount = cart.Lines.Sum(lineitem => ((CommerceTotal)lineitem.Total).LineItemDiscountAmount);
+
+    using (Html.BeginRouteForm(Sitecore.Mvc.Configuration.MvcSettings.SitecoreRouteName, FormMethod.Post))
+    {
+        <button type="submit" class="btn btn-default">Submit</button>
+        <h1>Cart</h1>
+
+        <table>
+            <tr>
+                <td>
+                    Line ID
+                </td>
+                <td>
+                    ProductName
+                </td>
+                <td>
+                    Quantity
+                </td>
+                <td>
+                    Price
+                </td>
+                <td>
+                    Line Total
+                </td>
+            </tr>
+            @foreach (var line in cart.Lines.Cast<CommerceCartLine>())
+            {
+                <tr>
+                    <td>
+                        @line.ExternalCartLineId
+                    </td>
+                    <td>
+                        @line.Product.ProductName
+                    </td>
+                    <td>
+                        @line.Quantity
+                    </td>
+                    <td>
+                        @line.Product.Price
+                    </td>
+                    <td>
+                        @line.Total.CurrencyCode @line.Total.Amount
+                    </td>
+                </tr>
+                if (line.Adjustments.Any())
+                {
+                    foreach (var adjustment in line.Adjustments)
+                    {
+                        <tr>
+                            <td colspan="4">
+                                @adjustment.Description
+                            </td>
+                            <td>
+                                @adjustment.Amount
+                            </td>
+                        </tr>
+                    }
+                }
+                <tr>
+                    <td colspan="4">
+                        @line.ShippingAddressId
+                        @line.ShippingMethodName
+                    </td>
+                </tr>
+            }
+            <tr>
+                <td colspan="4">Subtotal</td>
+                <td>@cart.Total.CurrencyCode @commerceTotal.Subtotal</td>
+            </tr>
+            <tr>
+                <td colspan="4">Shipping</td>
+                <td>@cart.Total.CurrencyCode @commerceTotal.ShippingTotal</td>
+            </tr>
+            <tr>
+                <td colspan="4">Handling</td>
+                <td>@cart.Total.CurrencyCode @commerceTotal.HandlingTotal</td>
+            </tr>
+            <tr>
+                <td colspan="4">Line Item Discount</td>
+                <td>@cart.Total.CurrencyCode @lineItemDiscountAmount</td>
+            </tr>
+            <tr>
+                <td colspan="4">Order Level Discount</td>
+                <td>@cart.Total.CurrencyCode @commerceTotal.OrderLevelDiscountAmount</td>
+            </tr>
+            <tr>
+                <td colspan="4">Tax</td>
+                <td>@cart.Total.CurrencyCode @commerceTotal.TaxTotal.Amount</td>
+            </tr>
+            <tr>
+                <td colspan="4">Total</td>
+                <td>@cart.Total.CurrencyCode @cart.Total.Amount</td>
+            </tr>
+        </table>
+
+        <h2>Payment Methods</h2>
+
+        foreach (var payment in cart.Payment)
+        {
+            <li>@payment.PaymentMethodID</li>
+        }
+
+        <h2>Parties</h2>
+        foreach (var party in cart.Parties)
+        {
+            <h3>Party</h3>
+            @party.ExternalId<br />
+            @party.FirstName @party.LastName<br />
+            @party.Address1<br />
+            @party.Address2<br />
+            @party.ZipPostalCode<br />
+            @party.City<br />
+            @party.Country<br />
+            <hr />
+        }
+
+    }
+
+}

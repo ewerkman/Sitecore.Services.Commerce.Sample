@@ -1,0 +1,33 @@
+﻿@using Sitecore.Commerce.Engine.Connect.Entities
+
+@model Sitecore.Commerce.Services.Orders.SubmitVisitorOrderResult
+
+<style>
+    table {
+        border: solid 1px gray;
+    }
+
+    tr {
+        border: solid 1px gray;
+    }
+
+    td {
+        border: solid 1px gray;
+    }
+</style>
+
+@if (!Model.Success)
+{
+    <ul>
+        @foreach (var message in Model.SystemMessages)
+        {
+            <li>@message.Message</li>
+        }
+    </ul>
+}
+
+@if (Model.Order != null)
+{
+    var order = Model.Order as CommerceOrder;
+    <p>Order created with id: @order.TrackingNumber</p>
+}
